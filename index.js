@@ -5,6 +5,7 @@ const db = require("./Model");
 const cors = require("cors");
 const { createServer } = require("node:http");
 const user = require("./Route/user");
+const cookieParser = require("cookie-parser");
 const admin = require("./Route/admin");
 const { Server } = require("socket.io");
 
@@ -33,6 +34,7 @@ db.sequelize
   })
   .catch((error) => console.log(error));
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 
@@ -40,6 +42,14 @@ app.use("/user", user);
 app.use("/admin", admin);
 app.get("/", (req, res) => {
   res.send("Hello World!");
+});
+
+io.use((socket, next) => {
+  (
+    socket.headers,
+    socket.request.res,
+    async (err) => await socketAuthenticator(err, socket, next)
+  );
 });
 
 const onlineUser = [];
